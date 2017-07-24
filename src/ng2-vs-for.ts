@@ -28,7 +28,7 @@ const closestElement = (el: Node, selector: string): HTMLElement => {
   }
 
   if (el && el[matchingFunction](selector)) {
-    return <HTMLElement>el;
+    return el as HTMLElement;
   } else {
     return null;
   }
@@ -41,7 +41,8 @@ const getWindowScroll = () => {
       scrollLeft: pageXOffset
     };
   } else {
-    let sx, sy;
+    let sx;
+    let sy;
     const d = document;
     const r = d.documentElement;
     const b = d.body;
@@ -66,13 +67,13 @@ const getScrollPos = (element: Node | Window, scrollProp: string): number => {
   return element === window ? getWindowScroll()[scrollProp] : element[scrollProp];
 };
 
-const getScrollOffset = (vsElement: HTMLElement, scrollElement: HTMLElement | Window, isHorizontal): number => {
+const getScrollOffset = (vsElement: HTMLElement, scrollElement: HTMLElement | Window, isHorizontal: boolean): number => {
   const vsPos = vsElement.getBoundingClientRect()[isHorizontal ? 'left' : 'top'];
-  const scrollPos = scrollElement === window ? 0 : (<HTMLElement>scrollElement).getBoundingClientRect()[isHorizontal ? 'left' : 'top'];
+  const scrollPos = scrollElement === window ? 0 : (scrollElement as HTMLElement).getBoundingClientRect()[isHorizontal ? 'left' : 'top'];
   return vsPos - scrollPos + (scrollElement === window ? getWindowScroll() : scrollElement)[isHorizontal ? 'scrollLeft' : 'scrollTop'];
 };
 
-function nextElementSibling(el) {
+function nextElementSibling(el: any) {
   if (el.nextElementSibling) {
     return el.nextElementSibling;
   }
@@ -89,8 +90,8 @@ function nextElementSibling(el) {
 })
 
 export class VsForDirective implements OnChanges, AfterViewInit, OnDestroy {
-  _originalCollection = [];
-  _slicedCollection = [];
+  _originalCollection: any[] = [];
+  _slicedCollection: any[] = [];
   originalLength: number;
   before: HTMLElement;
   after: HTMLElement;
@@ -132,8 +133,6 @@ export class VsForDirective implements OnChanges, AfterViewInit, OnDestroy {
   @Input()
   vsForTagName = 'div';
 
-
-
   @Input('vsFor')
   set originalCollection(value: any[]) {
     this._originalCollection = value || [];
@@ -165,7 +164,7 @@ export class VsForDirective implements OnChanges, AfterViewInit, OnDestroy {
               private _templateRef: TemplateRef<any>,
               private _ngZone: NgZone,
               private _changeDetectorRef: ChangeDetectorRef) {
-    let _prevClientSize;
+    let _prevClientSize: number;
     const reinitOnClientHeightChange = () => {
       if (!this.scrollParent) {
         return;
@@ -193,7 +192,7 @@ export class VsForDirective implements OnChanges, AfterViewInit, OnDestroy {
     }
   }
 
-  postDigest(fn) {
+  postDigest(fn: any) {
     const subscription: any = this._ngZone.onStable.subscribe(() => {
       fn();
       subscription.unsubscribe();
@@ -231,11 +230,7 @@ export class VsForDirective implements OnChanges, AfterViewInit, OnDestroy {
     this.offsetSize = this.vsForHorizontal ? 'offsetWidth' : 'offsetHeight';
     this.scrollPos = this.vsForHorizontal ? 'scrollLeft' : 'scrollTop';
 
-    if (this.vsForScrollParent) {
-      this.scrollParent = closestElement(this.parent, this.vsForScrollParent);
-    } else {
-      this.scrollParent = this.parent;
-    }
+    this.scrollParent = (this.vsForScrollParent) ? closestElement(this.parent, this.vsForScrollParent) : this.parent;
 
     this.elementSize = getClientSize(this.scrollParent, this.clientSize) || 50;
 
